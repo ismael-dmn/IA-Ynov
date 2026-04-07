@@ -58,12 +58,12 @@ class ChatResponse(BaseModel):
     response: str
 
 class BookingRequest(BaseModel):
-    destination: str
-    date: str
-    travelers: int
-    name: str
-    email: str
-    phone: str
+    destination: str = Field(..., min_length=1)
+    date: str = Field(..., min_length=1)
+    travelers: int = Field(..., ge=1, le=10)
+    name: str = Field(..., min_length=1)
+    email: str = Field(..., pattern=r'^[^@\s]+@[^@\s]+\.[^@\s]+$')
+    phone: str = Field(..., min_length=1)
     message: Optional[str] = ""
 
 class BookingResponse(BaseModel):

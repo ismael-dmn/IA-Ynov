@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Send, CheckCircle, Calendar as CalendarIcon, Users, User, Mail, Phone } from 'lucide-react';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
@@ -22,9 +22,16 @@ export default function Booking({ preselectedDestination }) {
     phone: '',
     message: '',
   });
+
+  useEffect(() => {
+    if (preselectedDestination) {
+      setForm(prev => ({ ...prev, destination: preselectedDestination }));
+    }
+  }, [preselectedDestination]);
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(null);
+  const [dateOpen, setDateOpen] = useState(false);
 
   const validate = () => {
     const e = {};
@@ -90,13 +97,19 @@ export default function Booking({ preselectedDestination }) {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-5">
             <div className="sm:col-span-2">
               <label className="block text-sm text-tt-cream/70 mb-2">Destination</label>
-              <Select value={form.destination} onValueChange={(v) => setForm({...form, destination: v})}>
-                <SelectTrigger className="w-full rounded-2xl bg-[#0a0a0a] border-tt-gold/20 text-tt-cream h-12" data-testid="booking-destination-select">
+              <Select
+                value={form.destination}
+                onValueChange={(v) => {
+                  setForm(prev => ({...prev, destination: v}));
+                  setErrors(prev => { const next = {...prev}; delete next.destination; return next; });
+                }}
+              >
+                <SelectTrigger className="w-full rounded-2xl bg-[#0a0a0a] border-tt-gold/20 text-tt-cream h-12 [&>span]:text-tt-cream" data-testid="booking-destination-select">
                   <SelectValue placeholder="Choisissez une destination" />
                 </SelectTrigger>
-                <SelectContent className="bg-tt-surface border-tt-gold/20">
+                <SelectContent className="bg-tt-surface border-tt-gold/20 z-[60]">
                   {DESTINATIONS.map(d => (
-                    <SelectItem key={d.id} value={d.id} className="text-tt-cream hover:bg-tt-gold/10 focus:bg-tt-gold/10 focus:text-tt-cream">
+                    <SelectItem key={d.id} value={d.id} className="text-tt-cream hover:bg-tt-gold/10 focus:bg-tt-gold/10 focus:text-tt-cream cursor-pointer">
                       {d.title} - {d.price}&euro; ({d.duration})
                     </SelectItem>
                   ))}
@@ -107,7 +120,7 @@ export default function Booking({ preselectedDestination }) {
 
             <div>
               <label className="block text-sm text-tt-cream/70 mb-2">Date de depart</label>
-              <Popover>
+              <Popover open={dateOpen} onOpenChange={setDateOpen}>
                 <PopoverTrigger asChild>
                   <button
                     type="button"
@@ -118,11 +131,15 @@ export default function Booking({ preselectedDestination }) {
                     {form.date ? format(form.date, 'dd MMM yyyy', { locale: fr }) : 'Selectionnez une date'}
                   </button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 bg-tt-surface border-tt-gold/20" align="start">
+                <PopoverContent className="w-auto p-0 bg-tt-surface border-tt-gold/20 z-[60]" align="start">
                   <Calendar
                     mode="single"
                     selected={form.date}
-                    onSelect={(d) => setForm({...form, date: d})}
+                    onSelect={(d) => {
+                      setForm(prev => ({...prev, date: d}));
+                      setErrors(prev => { const next = {...prev}; delete next.date; return next; });
+                      setDateOpen(false);
+                    }}
                     disabled={(date) => date < new Date()}
                     className="text-tt-cream"
                   />

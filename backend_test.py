@@ -186,6 +186,39 @@ class TimeTravel_API_Tester:
         
         return success
 
+    def test_booking_empty_name_validation(self):
+        """Test booking endpoint with empty name returns string_too_short error"""
+        booking_data = {
+            "destination": "paris",
+            "date": "2024-12-25",
+            "travelers": 2,
+            "name": "",  # Empty name should trigger string_too_short
+            "email": "jean.dupont@example.com",
+            "phone": "+33 6 12 34 56 78",
+            "message": "Test message"
+        }
+        
+        success, response = self.run_test(
+            "Booking Empty Name Validation",
+            "POST",
+            "booking",
+            422,
+            data=booking_data
+        )
+        
+        if success and isinstance(response, dict):
+            # Check if the response contains string_too_short error for name field
+            if 'detail' in response:
+                for error in response['detail']:
+                    if (error.get('type') == 'string_too_short' and 
+                        'name' in error.get('loc', [])):
+                        print(f"   ✅ Found string_too_short error for name field")
+                        return True
+                print(f"   ❌ string_too_short error for name not found in response")
+                return False
+        
+        return success
+
     def test_chat_error_handling(self):
         """Test chat endpoint error handling"""
         # Test with missing session_id
@@ -214,6 +247,7 @@ def main():
         ("Chat Session Continuity", tester.test_chat_session_continuity),
         ("Booking Valid Data", tester.test_booking_endpoint_valid),
         ("Booking Invalid Data", tester.test_booking_endpoint_invalid),
+        ("Booking Empty Name Validation", tester.test_booking_empty_name_validation),
         ("Chat Error Handling", tester.test_chat_error_handling),
     ]
     
