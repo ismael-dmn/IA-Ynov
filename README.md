@@ -203,14 +203,49 @@ Algorithme de scoring qui attribue des points a chaque destination selon les rep
 
 ```env
 # Backend
-MONGO_URL=mongodb://localhost:27017
+MONGO_URL=mongodb+srv://user:password@cluster.mongodb.net/timetravel_db
 DB_NAME=timetravel_db
-CORS_ORIGINS=*
-EMERGENT_LLM_KEY=votre-cle-emergent-ici
+CORS_ORIGINS=https://votre-domaine.vercel.app
+
+# Cle API OpenAI (obligatoire pour deploiement Vercel / externe)
+OPENAI_API_KEY=sk-votre-cle-openai-ici
+
+# Cle Emergent (uniquement sur plateforme Emergent — ignoree si OPENAI_API_KEY est presente)
+# EMERGENT_LLM_KEY=sk-emergent-xxx
 
 # Frontend
-REACT_APP_BACKEND_URL=http://localhost:8001
+REACT_APP_BACKEND_URL=https://votre-backend.vercel.app
 ```
+
+---
+
+## Deploiement sur Vercel
+
+### Pre-requis
+- Un compte [Vercel](https://vercel.com)
+- Une cle API OpenAI depuis [platform.openai.com](https://platform.openai.com)
+- Une base MongoDB Atlas (gratuite sur [mongodb.com/atlas](https://www.mongodb.com/atlas))
+
+### Variables d'environnement Vercel
+
+Dans **Settings > Environment Variables** de votre projet Vercel :
+
+| Variable | Valeur | Obligatoire |
+|---|---|---|
+| `OPENAI_API_KEY` | `sk-...` (votre cle OpenAI) | Oui |
+| `MONGO_URL` | `mongodb+srv://...` (MongoDB Atlas) | Oui |
+| `DB_NAME` | `timetravel_db` | Oui |
+| `CORS_ORIGINS` | `https://votre-domaine.vercel.app` | Oui |
+| `REACT_APP_BACKEND_URL` | URL du backend deploye | Oui |
+
+### Fonctionnement dual du backend
+
+Le backend detecte automatiquement le provider LLM a utiliser :
+
+1. **Si `OPENAI_API_KEY` est definie** → utilise le SDK OpenAI standard (mode Vercel)
+2. **Sinon, si `EMERGENT_LLM_KEY` est definie** → utilise emergentintegrations (mode Emergent)
+
+Aucune modification de code necessaire entre les deux environnements.
 
 ---
 

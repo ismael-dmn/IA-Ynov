@@ -9,7 +9,14 @@ from pydantic import BaseModel, Field, ConfigDict
 from typing import List, Optional
 import uuid
 from datetime import datetime, timezone
-from emergentintegrations.llm.chat import LlmChat, UserMessage
+from openai import AsyncOpenAI
+
+# Charge emergentintegrations uniquement si disponible (environnement Emergent)
+try:
+    from emergentintegrations.llm.chat import LlmChat, UserMessage
+    HAS_EMERGENT = True
+except ImportError:
+    HAS_EMERGENT = False
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -24,8 +31,19 @@ api_router = APIRouter(prefix="/api")
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
-# Chat sessions store
-chat_sessions = {}
+# --- Configuration du provider LLM ---
+# Priorite : OPENAI_API_KEY (SDK standard, Vercel) > EMERGENT_LLM_KEY (plateforme Emergent)
+OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
+EMERGENT_LLM_KEY = os.environ.get('EMERGENT_LLM_KEY')
+USE_OPENAI_SDK = bool(OPENAI_API_KEY) or not HAS_EMERGENT
+
+if USE_OPENAI_SDK:
+    openai_client = AsyncOpenAI(api_key=OPENAI_API_KEY or EMERGENT_LLM_KEY)
+    # Historique de conversation par session (mode SDK)
+    chat_histories = {}
+else:
+    # Sessions emergentintegrations
+    chat_sessions = {}
 
 SYSTEM_PROMPT = """Tu es l'assistant virtuel de TimeTravel Agency, une agence de voyage temporel de luxe.
 Ton rôle : conseiller les clients sur les meilleures destinations temporelles.
@@ -80,18 +98,35 @@ async def root():
 @api_router.post("/chat", response_model=ChatResponse)
 async def chat_endpoint(request: ChatRequest):
     try:
-        api_key = os.environ.get('EMERGENT_LLM_KEY')
-        if request.session_id not in chat_sessions:
-            chat_sessions[request.session_id] = LlmChat(
-                api_key=api_key,
-                session_id=request.session_id,
-                system_message=SYSTEM_PROMPT
-            ).with_model("openai", "gpt-4o")
+        if USE_OPENAI_SDK:
+            # --- Mode SDK OpenAI standard (compatible Vercel) ---
+            if request.session_id not in chat_histories:
+                chat_histories[request.session_id] = [
+                    {"role": "system", "content": SYSTEM_PROMPT}
+                ]
+            history = chat_histories[request.session_id]
+            history.append({"role": "user", "content": request.message})
 
-        chat = chat_sessions[request.session_id]
-        user_message = UserMessage(text=request.message)
-        response = await chat.send_message(user_message)
-        return ChatResponse(response=response)
+            completion = await openai_client.chat.completions.create(
+                model="gpt-4o",
+                messages=history,
+            )
+            reply = completion.choices[0].message.content
+            history.append({"role": "assistant", "content": reply})
+            return ChatResponse(response=reply)
+        else:
+            # --- Mode emergentintegrations (plateforme Emergent) ---
+            if request.session_id not in chat_sessions:
+                chat_sessions[request.session_id] = LlmChat(
+                    api_key=EMERGENT_LLM_KEY,
+                    session_id=request.session_id,
+                    system_message=SYSTEM_PROMPT
+                ).with_model("openai", "gpt-4o")
+
+            chat = chat_sessions[request.session_id]
+            user_message = UserMessage(text=request.message)
+            response = await chat.send_message(user_message)
+            return ChatResponse(response=response)
     except Exception as e:
         logger.error(f"Chat error: {e}")
         return ChatResponse(response="Désolé, je rencontre un problème technique. Veuillez réessayer dans un instant.")
