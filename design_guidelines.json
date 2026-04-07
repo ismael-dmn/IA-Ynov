@@ -1,0 +1,113 @@
+{
+  "theme": "dark",
+  "archetype": "5 (Jewel & Luxury)",
+  "language": "fr",
+  "colors": {
+    "background": "#0a0a0a",
+    "surface": "#1a1a1a",
+    "primary": "#c9a961",
+    "foreground": "#f5f1e8",
+    "border": "rgba(201, 169, 97, 0.2)"
+  },
+  "typography": {
+    "headings": {
+      "fontFamily": "'Playfair Display', serif",
+      "h1": "text-5xl sm:text-6xl md:text-7xl tracking-tighter font-medium",
+      "h2": "text-3xl sm:text-4xl md:text-5xl tracking-tight font-medium",
+      "h3": "text-2xl sm:text-3xl font-medium",
+      "h4": "text-xl sm:text-2xl font-medium"
+    },
+    "body": {
+      "fontFamily": "'Inter', sans-serif",
+      "base": "text-base sm:text-lg leading-relaxed text-[#f5f1e8]/80",
+      "small": "text-sm uppercase tracking-[0.2em] text-[#c9a961]"
+    }
+  },
+  "layout": {
+    "spacing": {
+      "section_padding": "py-24 md:py-32",
+      "container": "container mx-auto px-6 md:px-12",
+      "gap": "gap-8 md:gap-12"
+    },
+    "destinations_grid": {
+      "type": "bento",
+      "container": "grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8",
+      "items": {
+        "paris": "col-span-1 md:col-span-8 md:row-span-2 min-h-[500px]",
+        "cretaceous": "col-span-1 md:col-span-4 min-h-[300px]",
+        "florence": "col-span-1 md:col-span-4 min-h-[300px]"
+      }
+    }
+  },
+  "components": {
+    "header": {
+      "default": "fixed top-0 w-full z-50 transition-all duration-300 bg-transparent border-b border-transparent py-6",
+      "scrolled": "fixed top-0 w-full z-50 transition-all duration-300 backdrop-blur-xl bg-[#0a0a0a]/80 border-b border-[#c9a961]/20 py-4 shadow-[0_4px_30px_rgba(0,0,0,0.5)]"
+    },
+    "cards": {
+      "base": "relative overflow-hidden rounded-2xl bg-[#1a1a1a] border border-[#c9a961]/10 transition-all duration-500",
+      "hover": "hover:border-[#c9a961]/40 hover:shadow-[0_16px_48px_rgba(201,169,97,0.15)] hover:-translate-y-1 group"
+    },
+    "buttons": {
+      "primary": "inline-flex items-center justify-center rounded-2xl bg-[#c9a961] text-[#0a0a0a] font-medium px-8 py-4 transition-all hover:bg-[#d4b775] hover:shadow-[0_0_20px_rgba(201,169,97,0.4)]",
+      "outline": "inline-flex items-center justify-center rounded-2xl border border-[#c9a961] text-[#c9a961] font-medium px-8 py-4 transition-all hover:bg-[#c9a961]/10",
+      "ghost": "inline-flex items-center justify-center rounded-2xl text-[#f5f1e8] font-medium px-6 py-3 transition-all hover:text-[#c9a961]"
+    },
+    "inputs": {
+      "base": "w-full rounded-2xl bg-[#0a0a0a] border border-[#c9a961]/20 px-6 py-4 text-[#f5f1e8] placeholder:text-[#f5f1e8]/40 focus:outline-none focus:ring-2 focus:ring-[#c9a961]/50 focus:border-transparent transition-all"
+    },
+    "modals": {
+      "content": "bg-[#1a1a1a] border border-[#c9a961]/20 rounded-2xl p-0 overflow-hidden shadow-[0_24px_64px_rgba(0,0,0,0.8)]"
+    }
+  },
+  "motion": {
+    "scroll": "Use Lenis for smooth scrolling.",
+    "parallax": "Apply framer-motion useScroll to hero video/image background to move at 0.5x scroll speed.",
+    "reveal": "Use intersection observer or framer-motion whileInView for staggering elements in sections (opacity 0 -> 1, y 20 -> 0).",
+    "image_hover": "Scale image inside destination cards by 1.05 on card hover using CSS transitions."
+  },
+  "media": {
+    "hero_video_placeholder": {
+      "url": "https://images.unsplash.com/photo-1751971309844-cd398ffc540f?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA2ODl8MHwxfHNlYXJjaHwyfHxnb2xkZW4lMjBjbG9ja3dvcmslMjBibGFjayUyMGJhY2tncm91bmR8ZW58MHx8fHwxNzc1NTk3ODY5fDA&ixlib=rb-4.1.0&q=85",
+      "description": "Golden clockwork mechanism on black background - use as fallback or still frame for hero background",
+      "category": "hero"
+    },
+    "destinations": [
+      {
+        "id": "paris_1889",
+        "url": "https://images.unsplash.com/photo-1607373080420-66dc14dba2ba?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzR8MHwxfHNlYXJjaHwxfHx2aW50YWdlJTIwcGFyaXMlMjBlaWZmZWwlMjB0b3dlcnxlbnwwfHx8fDE3NzU1OTc4Njl8MA&ixlib=rb-4.1.0&q=85",
+        "description": "Vintage black and white Paris Eiffel Tower",
+        "category": "destination_card"
+      },
+      {
+        "id": "cretaceous",
+        "url": "https://images.unsplash.com/photo-1736942704923-772bb8987bfb?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1MTN8MHwxfHNlYXJjaHwyfHxwcmVoaXN0b3JpYyUyMGp1bmdsZSUyMGRpbm9zYXVyfGVufDB8fHx8MTc3NTU5Nzg2OXww&ixlib=rb-4.1.0&q=85",
+        "description": "Prehistoric jungle with dinosaur",
+        "category": "destination_card"
+      },
+      {
+        "id": "florence_1504",
+        "url": "https://images.unsplash.com/photo-1758522276148-08cb5c3c8021?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA0MTJ8MHwxfHNlYXJjaHwyfHxyZW5haXNzYW5jZSUyMHN0dWRpbyUyMHBhaW50aW5nfGVufDB8fHx8MTc3NTU5Nzg2OXww&ixlib=rb-4.1.0&q=85",
+        "description": "Artist painting in a Renaissance studio",
+        "category": "destination_card"
+      }
+    ],
+    "brand_logo": {
+      "url": "https://images.unsplash.com/photo-1759975142096-86dbd64ad327?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMzl8MHwxfHNlYXJjaHwyfHxsdXh1cnklMjBob3RlbCUyMGxvZ298ZW58MHx8fHwxNzc1NTk3ODU5fDA&ixlib=rb-4.1.0&q=85",
+      "description": "Luxury hotel swan logo for TimeTravel Agency branding",
+      "category": "logo"
+    }
+  },
+  "instructions_to_main_agent": [
+    "Install custom fonts via Google Fonts in index.html: <link href='https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap' rel='stylesheet'>",
+    "Tailwind Config Update: Add the custom colors ('#0a0a0a', '#1a1a1a', '#c9a961', '#f5f1e8') directly to the tailwind config and update border-radius to 1rem for '2xl'.",
+    "Hero Section: Full viewport height (100vh) using the provided golden clockwork image as a parallax background. Dark gradient overlay (bg-black/60) to ensure text readability.",
+    "Destinations: Implement a Bento Grid using Mode A from E1's guidelines. Paris takes col-span-8 and row-span-2. Others take col-span-4.",
+    "Destination Modal: When clicking a card, open a Shadcn Dialog without standard white background. Use customized modal class.",
+    "Personalization Quiz: Use Framer Motion to animate between the 4 questions smoothly (slide-in/out). Use Shadcn RadioGroup for choices.",
+    "Chatbot Widget: Fixed bottom-right absolute positioning with a floating animation. Click opens a sleek chat window styled with anthracite background.",
+    "Always use the French language for content as requested: 'Agence de Voyage Temporel', 'Réserver', 'Nos Destinations', etc.",
+    "Test IDs: Ensure all interactive elements have data-testid (e.g., 'book-now-button', 'destination-paris-card').",
+    "Use Lucide icons for UI elements, tinted in gold (#c9a961)."
+  ]
+}
