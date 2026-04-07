@@ -6,67 +6,120 @@ import os
 import logging
 from pathlib import Path
 from pydantic import BaseModel, Field, ConfigDict
-from typing import List
+from typing import List, Optional
 import uuid
 from datetime import datetime, timezone
-
+from emergentintegrations.llm.chat import LlmChat, UserMessage
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
-# MongoDB connection
 mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
-# Create the main app without a prefix
 app = FastAPI()
-
-# Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
 
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
-# Define Models
-class StatusCheck(BaseModel):
-    model_config = ConfigDict(extra="ignore")  # Ignore MongoDB's _id field
-    
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    client_name: str
-    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+# Chat sessions store
+chat_sessions = {}
 
-class StatusCheckCreate(BaseModel):
-    client_name: str
+SYSTEM_PROMPT = """Tu es l'assistant virtuel de TimeTravel Agency, une agence de voyage temporel de luxe.
+Ton rôle : conseiller les clients sur les meilleures destinations temporelles.
 
-# Add your routes to the router instead of directly to app
+Ton ton :
+- Professionnel mais chaleureux
+- Passionné d'histoire
+- Toujours enthousiaste sans être trop familier
+- Expertise en voyage temporel (fictif mais crédible)
+
+Tu connais parfaitement nos 3 destinations :
+- Paris 1889 (Belle Époque, Tour Eiffel, Exposition Universelle) — 12 500€, 7 jours
+- Crétacé -65M (dinosaures, nature préhistorique) — 18 900€, 5 jours
+- Florence 1504 (Renaissance, art, Michel-Ange) — 14 200€, 6 jours
+
+Tu peux :
+- Suggérer des destinations selon les intérêts du client
+- Donner des informations pratiques (prix, durée, équipement fourni)
+- Répondre aux FAQ sur la sécurité, les paradoxes temporels, l'assurance
+- Rediriger vers le formulaire de réservation pour finaliser
+
+Réponses courtes, conversationnelles, max 4 phrases sauf si on te demande des détails."""
+
+
+class ChatRequest(BaseModel):
+    session_id: str
+    message: str
+
+class ChatResponse(BaseModel):
+    response: str
+
+class BookingRequest(BaseModel):
+    destination: str
+    date: str
+    travelers: int
+    name: str
+    email: str
+    phone: str
+    message: Optional[str] = ""
+
+class BookingResponse(BaseModel):
+    success: bool
+    booking_id: str
+    message: str
+
+
 @api_router.get("/")
 async def root():
-    return {"message": "Hello World"}
+    return {"message": "TimeTravel Agency API"}
 
-@api_router.post("/status", response_model=StatusCheck)
-async def create_status_check(input: StatusCheckCreate):
-    status_dict = input.model_dump()
-    status_obj = StatusCheck(**status_dict)
-    
-    # Convert to dict and serialize datetime to ISO string for MongoDB
-    doc = status_obj.model_dump()
-    doc['timestamp'] = doc['timestamp'].isoformat()
-    
-    _ = await db.status_checks.insert_one(doc)
-    return status_obj
 
-@api_router.get("/status", response_model=List[StatusCheck])
-async def get_status_checks():
-    # Exclude MongoDB's _id field from the query results
-    status_checks = await db.status_checks.find({}, {"_id": 0}).to_list(1000)
-    
-    # Convert ISO string timestamps back to datetime objects
-    for check in status_checks:
-        if isinstance(check['timestamp'], str):
-            check['timestamp'] = datetime.fromisoformat(check['timestamp'])
-    
-    return status_checks
+@api_router.post("/chat", response_model=ChatResponse)
+async def chat_endpoint(request: ChatRequest):
+    try:
+        api_key = os.environ.get('EMERGENT_LLM_KEY')
+        if request.session_id not in chat_sessions:
+            chat_sessions[request.session_id] = LlmChat(
+                api_key=api_key,
+                session_id=request.session_id,
+                system_message=SYSTEM_PROMPT
+            ).with_model("openai", "gpt-4o")
 
-# Include the router in the main app
+        chat = chat_sessions[request.session_id]
+        user_message = UserMessage(text=request.message)
+        response = await chat.send_message(user_message)
+        return ChatResponse(response=response)
+    except Exception as e:
+        logger.error(f"Chat error: {e}")
+        return ChatResponse(response="Désolé, je rencontre un problème technique. Veuillez réessayer dans un instant.")
+
+
+@api_router.post("/booking", response_model=BookingResponse)
+async def create_booking(request: BookingRequest):
+    booking_id = str(uuid.uuid4())[:8].upper()
+    doc = {
+        "booking_id": booking_id,
+        "destination": request.destination,
+        "date": request.date,
+        "travelers": request.travelers,
+        "name": request.name,
+        "email": request.email,
+        "phone": request.phone,
+        "message": request.message,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "status": "pending"
+    }
+    await db.bookings.insert_one(doc)
+    return BookingResponse(
+        success=True,
+        booking_id=booking_id,
+        message=f"Votre réservation {booking_id} a été enregistrée avec succès."
+    )
+
+
 app.include_router(api_router)
 
 app.add_middleware(
@@ -76,13 +129,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
