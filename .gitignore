@@ -105,3 +105,12 @@ android-sdk/frontend/node_modules/.cache/default-development/3.pack
 *.env
 *.env.*
 frontend/node_modules/.cache/default-development/0.pack
+-e 
+# Environment and credential files
+.env
+.env.*
+*.env
+credentials.json
+*.pem
+*.key
+.credentials
